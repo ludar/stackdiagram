@@ -167,3 +167,22 @@
 .sd-formfoot a { color: var(--sd-red); }
 .sd-errors { background: var(--sd-red); color: var(--sd-bg); font-size: 13px; padding: 10px 14px; margin-bottom: 14px; }
 .sd-errors p { margin: 2px 0; }
+
+/* ── landing v2: ribbon, generative hero, tell-your-ai, llm block ── */
+.sd-ribbon { background: var(--sd-ink); color: var(--sd-bg); font-family: 'JetBrains Mono', monospace; font-size: 12.5px; text-align: center; padding: 7px 16px; letter-spacing: .04em; }
+.sd-ribbon strong { color: var(--sd-gold); font-weight: 600; }
+.sd-hero-art { position: relative; flex: 1; min-width: 260px; height: 340px; align-self: stretch; }
+canvas.sd-hero-art { width: 100%; max-width: 520px; }
+.sd-tell { border-bottom: 3px solid var(--sd-ink); text-align: center; display: flex; flex-direction: column; align-items: center; }
+.sd-tell-head { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.sd-tell h2 { font-size: clamp(26px, 4vw, 40px); margin-bottom: 0; line-height: 1.15; }
+.sd-tell-url { color: var(--sd-red); font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: .92em; }
+.sd-tell-sub { color: var(--sd-muted); max-width: 62ch; margin: 16px 0 22px; font-size: 15.5px; }
+.sd-prompt { max-width: 720px; width: 100%; border: 2px solid var(--sd-ink); background: var(--sd-panel); border-left: 6px solid var(--sd-gold); padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; text-align: left; }
+.sd-prompt-text { font-size: 15px; line-height: 1.55; color: var(--sd-ink); font-style: italic; margin: 0; user-select: all; }
+.sd-tell-note { color: var(--sd-muted); max-width: 62ch; margin-top: 20px; font-size: 14px; }
+.sd-tell-note code { background: var(--sd-panel); padding: 1px 5px; font-size: .9em; }
+.sd-tell-note a { color: var(--sd-red); text-decoration: none; }
+.sd-llm { background: var(--sd-panel); border-top: 3px solid var(--sd-ink); }
+.sd-llm p { max-width: 70ch; font-size: 15px; line-height: 1.6; color: var(--sd-ink); }
+.sd-llm code { background: var(--sd-bg); border: 1px solid var(--sd-line); padding: 1px 5px; font-family: 'JetBrains Mono', monospace; font-size: .88em; }

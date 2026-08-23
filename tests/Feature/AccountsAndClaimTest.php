@@ -26,7 +26,7 @@ class AccountsAndClaimTest extends TestCase
             'nodes' => [['id' => 'a', 'type' => 'service', 'label' => 'App']],
         ]);
 
-        return [$res->json('id'), $res->json('claim_token')];
+        return [$res->json('id'), $res->json('edit_token')];
     }
 
     public function test_registration_with_email_only(): void
@@ -42,10 +42,10 @@ class AccountsAndClaimTest extends TestCase
 
     public function test_claim_attaches_owner_and_cancels_expiry(): void
     {
-        [$id, $token] = $this->makeDiagram();
+        [$id] = $this->makeDiagram();
         $user = User::factory()->create();
 
-        $this->actingAs($user)->get("/d/$id/claim?token=$token")
+        $this->actingAs($user)->get("/d/$id/claim")
             ->assertRedirect("/d/$id");
 
         $diagram = Diagram::find($id);
@@ -54,28 +54,34 @@ class AccountsAndClaimTest extends TestCase
         $this->assertNull($diagram->claim_token_hash);
     }
 
-    public function test_claim_requires_valid_token_and_verified_user(): void
+    public function test_claim_requires_verified_account(): void
     {
         [$id] = $this->makeDiagram();
 
-        // guest -> login
-        $this->get("/d/$id/claim?token=whatever")->assertRedirect('/login');
+        // guest -> login (and after login, the intended claim URL completes)
+        $this->get("/d/$id/claim")->assertRedirect('/login');
         // unverified -> verification notice
         $unverified = User::factory()->unverified()->create();
-        $this->actingAs($unverified)->get("/d/$id/claim?token=whatever")->assertRedirect('/email/verify');
-        // wrong token -> 403
-        $this->actingAs(User::factory()->create())->get("/d/$id/claim?token=ct_wrong")->assertForbidden();
+        $this->actingAs($unverified)->get("/d/$id/claim")->assertRedirect('/email/verify');
         $this->assertNull(Diagram::find($id)->owner_id);
     }
 
-    public function test_claim_is_single_use(): void
+    public function test_private_diagram_cannot_be_claimed(): void
     {
-        [$id, $token] = $this->makeDiagram();
+        [$id] = $this->makeDiagram();
+        Diagram::whereKey($id)->update(['visibility' => 'private']);
+
+        $this->actingAs(User::factory()->create())->get("/d/$id/claim")->assertNotFound();
+    }
+
+    public function test_first_claim_wins(): void
+    {
+        [$id] = $this->makeDiagram();
         $first = User::factory()->create();
         $second = User::factory()->create();
 
-        $this->actingAs($first)->get("/d/$id/claim?token=$token");
-        $this->actingAs($second)->get("/d/$id/claim?token=$token")->assertRedirect("/d/$id");
+        $this->actingAs($first)->get("/d/$id/claim");
+        $this->actingAs($second)->get("/d/$id/claim")->assertRedirect("/d/$id");
 
         $this->assertSame($first->id, Diagram::find($id)->owner_id);
     }
@@ -97,9 +103,9 @@ class AccountsAndClaimTest extends TestCase
 
     public function test_private_diagram_cannot_be_forked_by_stranger(): void
     {
-        [$id, $token] = $this->makeDiagram();
+        [$id] = $this->makeDiagram();
         $owner = User::factory()->create();
-        $this->actingAs($owner)->get("/d/$id/claim?token=$token");
+        $this->actingAs($owner)->get("/d/$id/claim");
         Diagram::whereKey($id)->update(['visibility' => 'private']);
 
         $this->actingAs(User::factory()->create())->post("/d/$id/fork")->assertNotFound();
@@ -107,10 +113,10 @@ class AccountsAndClaimTest extends TestCase
 
     public function test_visibility_and_delete_require_ownership(): void
     {
-        [$id, $token] = $this->makeDiagram();
+        [$id] = $this->makeDiagram();
         $owner = User::factory()->create();
         $stranger = User::factory()->create();
-        $this->actingAs($owner)->get("/d/$id/claim?token=$token");
+        $this->actingAs($owner)->get("/d/$id/claim");
 
         $this->actingAs($stranger)->patch("/d/$id/visibility", ['visibility' => 'public'])->assertForbidden();
         $this->actingAs($stranger)->delete("/d/$id")->assertForbidden();
@@ -125,10 +131,10 @@ class AccountsAndClaimTest extends TestCase
 
     public function test_dashboard_lists_own_diagrams_only(): void
     {
-        [$id, $token] = $this->makeDiagram();
+        [$id] = $this->makeDiagram();
         [$otherId] = $this->makeDiagram();
         $user = User::factory()->create();
-        $this->actingAs($user)->get("/d/$id/claim?token=$token");
+        $this->actingAs($user)->get("/d/$id/claim");
 
         $this->actingAs($user)->get('/dashboard')
             ->assertOk()

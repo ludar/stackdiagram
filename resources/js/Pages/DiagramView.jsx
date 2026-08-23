@@ -3,6 +3,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ReactFlow, Background, Controls, BackgroundVariant } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { nodeTypes, toFlow } from '../diagram/nodes.jsx';
+import Logo from '../Layouts/Logo.jsx';
 import { BrandIcon, TypeIcon, brandFor } from '../diagram/icons.jsx';
 
 const VIEW_NAMES = { services: 'Services', dataflow: 'Data flow', schema: 'Schema', deploy: 'Deploy' };
@@ -67,19 +68,17 @@ export default function DiagramView({ diagram }) {
         <div className="sd-page">
             <Head title={diagram.title} />
             <header className="sd-topbar">
-                <a href="/" className="sd-mark" aria-label="StackDiagram home">
-                    <i className="sd-mark-sq" /><i className="sd-mark-bar" /><i className="sd-mark-dot" />
-                </a>
+                <a href="/" className="sd-home" aria-label="StackDiagram home"><Logo size={30} /></a>
                 <h1>{diagram.title}</h1>
                 <span className="sd-viewtag">{VIEW_NAMES[diagram.view] ?? diagram.view}</span>
                 <div className="sd-topbar-right">
-                    {!diagram.owned && diagram.expires_at && !diagram.claim_token && (
-                        <span className="sd-expiry">expires {diagram.expires_at} — claim to keep</span>
+                    {diagram.claimable && diagram.expires_at && (
+                        <span className="sd-expiry">unclaimed — expires {diagram.expires_at}</span>
                     )}
-                    {diagram.claim_token && !diagram.owned && (
-                        auth?.user
-                            ? <a className="sd-btn sd-btn-claim" href={`/d/${diagram.id}/claim?token=${diagram.claim_token}`}>Claim this diagram</a>
-                            : <a className="sd-btn sd-btn-claim" href={`/d/${diagram.id}/claim?token=${diagram.claim_token}`}>Log in to claim</a>
+                    {diagram.claimable && (
+                        <a className="sd-btn sd-btn-claim" href={`/d/${diagram.id}/claim`}>
+                            {auth?.user ? 'Claim this diagram' : 'Log in to claim'}
+                        </a>
                     )}
                     {auth?.user && (
                         <button className="sd-btn sd-btn-ghost" onClick={() => router.post(`/d/${diagram.id}/fork`)}>Fork</button>

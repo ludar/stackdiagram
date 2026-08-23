@@ -1,12 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-
-export function Mark({ size = 1 }) {
-    return (
-        <span className="sd-mark" style={{ transform: `scale(${size})` }}>
-            <i className="sd-mark-sq" /><i className="sd-mark-bar" /><i className="sd-mark-dot" />
-        </span>
-    );
-}
+import Logo from './Logo.jsx';
 
 export default function Shell({ children, bare = false }) {
     const { auth, flash } = usePage().props;
@@ -15,7 +8,7 @@ export default function Shell({ children, bare = false }) {
         <div className={bare ? 'sd-page' : 'sd-page sd-scroll'}>
             <header className="sd-topbar">
                 <Link href="/" className="sd-home" aria-label="StackDiagram home">
-                    <Mark />
+                    <Logo size={34} />
                     <span className="sd-wordmark">Stackdiagram</span>
                 </Link>
                 <nav className="sd-nav">

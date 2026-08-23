@@ -37,9 +37,9 @@ class DiagramApiTest extends TestCase
         $res = $this->postJson('/api/v1/diagrams', $this->validDoc());
 
         $res->assertCreated()
-            ->assertJsonStructure(['id', 'url', 'claim_token', 'expires_at']);
+            ->assertJsonStructure(['id', 'url', 'claim_url', 'edit_token', 'expires_at']);
 
-        $this->assertStringStartsWith('ct_', $res->json('claim_token'));
+        $this->assertStringStartsWith('ct_', $res->json('edit_token'));
         $diagram = Diagram::find($res->json('id'));
         $this->assertNotNull($diagram);
         $this->assertSame('unlisted', $diagram->visibility);
@@ -82,12 +82,12 @@ class DiagramApiTest extends TestCase
     {
         $create = $this->postJson('/api/v1/diagrams', $this->validDoc());
         $id = $create->json('id');
-        $token = $create->json('claim_token');
+        $token = $create->json('edit_token');
         $newDoc = $this->validDoc(['title' => 'Renamed']);
 
         $this->putJson("/api/v1/diagrams/$id", $newDoc)->assertForbidden();
         $this->putJson("/api/v1/diagrams/$id", $newDoc, ['X-Claim-Token' => 'ct_wrong'])->assertForbidden();
-        $this->putJson("/api/v1/diagrams/$id", $newDoc, ['X-Claim-Token' => $token])
+        $this->putJson("/api/v1/diagrams/$id", $newDoc, ['X-Edit-Token' => $token])
             ->assertOk()->assertJsonPath('updated', true);
 
         $this->assertSame('Renamed', Diagram::find($id)->title);
@@ -123,7 +123,7 @@ class DiagramApiTest extends TestCase
         Diagram::whereKey($id)->update(['visibility' => 'private']);
 
         $this->getJson("/api/v1/diagrams/$id")->assertNotFound();
-        $this->getJson("/api/v1/diagrams/$id", ['X-Claim-Token' => $create->json('claim_token')])->assertOk();
+        $this->getJson("/api/v1/diagrams/$id", ['X-Claim-Token' => $create->json('edit_token')])->assertOk();
     }
 
     public function test_viewer_page_renders(): void

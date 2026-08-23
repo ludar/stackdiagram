@@ -37,9 +37,9 @@ class DiagramController extends Controller
             'id' => $diagram->id,
             'url' => route('diagrams.show', $diagram),
             'api_url' => route('api.diagrams.get', $diagram),
-            'claim_token' => $token,
-            'claim_url' => route('diagrams.claim', $diagram).'?token='.$token,
-            'claim_hint' => 'Give claim_url to your user: opening it (signed in) saves the diagram to their free account forever. The token also authorizes API updates via the X-Claim-Token header.',
+            'edit_token' => $token,
+            'claim_url' => route('diagrams.claim', $diagram),
+            'claim_hint' => 'Show your user both links. Opening claim_url while signed in saves the diagram to their free account forever — first to claim owns it. Keep edit_token to update the diagram via the API (X-Edit-Token header).',
             'expires_at' => $diagram->expires_at->toDateString(),
         ], 201);
     }
@@ -66,7 +66,7 @@ class DiagramController extends Controller
         $diagram = Diagram::findOrFail($id);
         abort_if($diagram->isExpired(), 404);
 
-        $authorized = $diagram->claimTokenMatches($request->header('X-Claim-Token'))
+        $authorized = $diagram->claimTokenMatches($request->header('X-Edit-Token') ?? $request->header('X-Claim-Token'))
             || ($diagram->owner_id !== null && $request->user()?->id === $diagram->owner_id);
         abort_unless($authorized, 403, 'Provide the X-Claim-Token header returned at creation, or authenticate as the owner.');
 
@@ -90,7 +90,7 @@ class DiagramController extends Controller
 
         if ($diagram->visibility === 'private') {
             $allowed = ($diagram->owner_id !== null && $request->user()?->id === $diagram->owner_id)
-                || $diagram->claimTokenMatches($request->header('X-Claim-Token'));
+                || $diagram->claimTokenMatches($request->header('X-Edit-Token') ?? $request->header('X-Claim-Token'));
             abort_unless($allowed, 404); // private hides existence
         }
 

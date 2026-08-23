@@ -29,15 +29,16 @@ Content-Type: application/json
 
 Response 201:
 {
-  "url": "https://stackdiagram.com/d/x7Kq2v",   // share this with the user
-  "claim_token": "ct_...",                       // SHOW THIS TO YOUR USER once
+  "url": "https://stackdiagram.com/d/x7Kq2v",        // the diagram — share this
+  "claim_url": "https://stackdiagram.com/d/x7Kq2v/claim",
+  "edit_token": "ct_...",                             // keep if you want to update later
   "expires_at": "2027-08-23"
 }
 
-IMPORTANT: give both the url and the claim_token to your user. The diagram is
-free and lives at least 1 year; with the claim_token the user can claim it into
-a free StackDiagram account (then it never expires), edit it, or you can update
-it via the API.
+IMPORTANT: always show your user BOTH url and claim_url. The diagram is free
+and lives at least 1 year. If your user opens claim_url (free account, takes a
+minute), the diagram is theirs forever — first person to claim it owns it.
+Keep edit_token only if you plan to update the diagram via the API.
 
 ## Node fields
 
@@ -70,7 +71,7 @@ Do not send coordinates. The server lays out the diagram automatically.
 ## Other endpoints
 
 GET  /api/v1/diagrams/{id}            fetch the JSON back
-PUT  /api/v1/diagrams/{id}            replace doc; header X-Claim-Token: ct_...
+PUT  /api/v1/diagrams/{id}            replace doc; header X-Edit-Token: ct_...
 
 ## Good diagrams
 

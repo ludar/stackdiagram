@@ -8,11 +8,12 @@ use Illuminate\Http\Request;
 
 class DiagramActionsController extends Controller
 {
-    /** GET /d/{id}/claim?token=ct_... — attach an unclaimed diagram to the signed-in user. */
+    /** GET /d/{id}/claim — first signed-in user to claim an unclaimed diagram owns it. */
     public function claim(Request $request, string $id): RedirectResponse
     {
         $diagram = Diagram::findOrFail($id);
         abort_if($diagram->isExpired(), 404);
+        abort_if($diagram->visibility === 'private', 404);
 
         if ($diagram->owner_id !== null) {
             return redirect()->route('diagrams.show', $diagram)
@@ -20,8 +21,6 @@ class DiagramActionsController extends Controller
                     ? 'This diagram is already yours.'
                     : 'This diagram has already been claimed.');
         }
-
-        abort_unless($diagram->claimTokenMatches($request->query('token')), 403, 'Invalid claim token.');
 
         $diagram->owner_id = $request->user()->id;
         $diagram->claim_token_hash = null;   // token is single-use
