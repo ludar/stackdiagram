@@ -12,7 +12,7 @@ const read = async () => {
 const size = (node) => {
   const label = node.label ?? '';
   const lines = 1 + (node.tech ? 1 : 0) + (node.schedule ? 1 : 0);
-  const w = Math.max(150, Math.min(280, 24 + label.length * 9));
+  const w = Math.max(150, Math.min(280, 58 + label.length * 9));
   let h = 34 + lines * 18;
   if (node.type === 'table' && node.columns?.length) h += Math.min(node.columns.length, 12) * 17 + 8;
   return { width: w, height: h };

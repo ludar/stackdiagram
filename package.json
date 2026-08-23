@@ -22,6 +22,7 @@
         "@xyflow/react": "^12.11.3",
         "elkjs": "^0.12.0",
         "react": "^19.2.8",
-        "react-dom": "^19.2.8"
+        "react-dom": "^19.2.8",
+        "simple-icons": "^16.28.0"
     }
 }

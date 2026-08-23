@@ -1,34 +1,37 @@
 import { Handle, Position } from '@xyflow/react';
+import { BrandIcon, TypeIcon, brandFor } from './icons.jsx';
 
-// Suprematist node set: hard edges, one accent shape per type.
-// Palette: ink #141413, cream #f0e9d8, red #cf3f2e, gold #e0b83a, green #3f7a4e.
+// Node chrome: brand icon when tech is recognized, geometric type icon otherwise.
+// Type is still color-coded via a left strip in the Suprematist palette.
 
-const ACCENTS = {
-    service:  { el: <span className="sd-accent sd-sq" />,        cls: 'sd-service' },
-    api:      { el: <span className="sd-accent sd-bar" />,       cls: 'sd-api' },
-    database: { el: <span className="sd-accent sd-bar-green" />, cls: 'sd-database' },
-    table:    { el: <span className="sd-accent sd-bar-green" />, cls: 'sd-table' },
-    queue:    { el: <span className="sd-accent sd-diag" />,      cls: 'sd-queue' },
-    topic:    { el: <span className="sd-accent sd-diag" />,      cls: 'sd-queue' },
-    cron:     { el: <span className="sd-accent sd-dot" />,       cls: 'sd-cron' },
-    cache:    { el: <span className="sd-accent sd-half" />,      cls: 'sd-cache' },
-    function: { el: <span className="sd-accent sd-tri" />,       cls: 'sd-function' },
-    storage:  { el: <span className="sd-accent sd-sq-green" />,  cls: 'sd-storage' },
-    external: { el: <span className="sd-accent sd-ring" />,      cls: 'sd-external' },
-    client:   { el: <span className="sd-accent sd-ring" />,      cls: 'sd-client' },
+const TYPE_COLOR = {
+    service: 'var(--sd-red)', api: 'var(--sd-red)',
+    database: 'var(--sd-green)', table: 'var(--sd-green)', storage: 'var(--sd-green)',
+    queue: 'var(--sd-red)', topic: 'var(--sd-red)',
+    cron: 'var(--sd-gold)', cache: 'var(--sd-gold)', function: 'var(--sd-gold)',
+    external: 'var(--sd-muted)', client: 'var(--sd-muted)',
 };
 
-function StackNode({ data }) {
-    const acc = ACCENTS[data.type] ?? ACCENTS.service;
+function StackNode({ data, selected }) {
+    const brand = brandFor(data.tech) ?? brandFor(data.label);
+    const outlined = data.type === 'external' || data.type === 'client';
     return (
-        <div className={`sd-node ${acc.cls}`} title={data.note ?? ''}>
+        <div
+            className={`sd-node ${outlined ? 'sd-outlined' : ''} ${selected ? 'sd-selected' : ''}`}
+            style={{ '--sd-type': TYPE_COLOR[data.type] ?? 'var(--sd-red)' }}
+        >
             <Handle type="target" position={data.horizontal ? Position.Left : Position.Top} className="sd-handle" />
-            <div className="sd-node-head">
-                {acc.el}
-                <span className="sd-label">{data.label}</span>
+            <div className="sd-node-body">
+                <div className="sd-icon">
+                    {brand ? <BrandIcon tech={data.tech} size={22} /> : <TypeIcon type={data.type} size={22} />}
+                </div>
+                <div className="sd-text">
+                    <span className="sd-label">{data.label}</span>
+                    {data.tech && <span className="sd-tech">{data.tech}</span>}
+                    {data.schedule && <span className="sd-schedule">{data.schedule}</span>}
+                </div>
+                {data.note && <span className="sd-info" title="Has a note — click to read">i</span>}
             </div>
-            {data.tech && <div className="sd-tech">{data.tech}</div>}
-            {data.schedule && <div className="sd-schedule">{data.schedule}</div>}
             {data.type === 'table' && data.columns?.length > 0 && (
                 <ul className="sd-columns">
                     {data.columns.slice(0, 12).map((c, i) => <li key={i}>{c}</li>)}
@@ -87,6 +90,7 @@ export function toFlow(doc, layout) {
         label: e.step != null ? `${e.step}. ${e.label ?? ''}`.trim() : e.label,
         type: 'smoothstep',
         className: 'sd-edge',
+        markerEnd: { type: 'arrowclosed', width: 16, height: 16, color: 'var(--sd-ink, #141413)' },
     }));
 
     return { nodes, edges };
