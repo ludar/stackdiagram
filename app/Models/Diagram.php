@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 class Diagram extends Model
 {
+    use SoftDeletes;
+
     // Short base58 string PK, no auto-increment.
     public $incrementing = false;
     protected $keyType = 'string';
@@ -59,6 +62,25 @@ class Diagram extends Model
     public function isExpired(): bool
     {
         return $this->expires_at !== null && $this->expires_at->isPast();
+    }
+
+    public function forkFor(User $user): self
+    {
+        $fork = new self([
+            'title' => $this->title,
+            'view' => $this->view,
+            'doc' => $this->doc,
+            'layout' => $this->layout,
+        ]);
+        $fork->id = self::generateId();
+        $fork->owner_id = $user->id;
+        $fork->forked_from_id = $this->id;
+        $fork->visibility = 'unlisted';
+        $fork->expires_at = null; // owned from birth
+        $fork->save();
+        $fork->snapshotVersion($user->id);
+
+        return $fork;
     }
 
     public function owner(): BelongsTo

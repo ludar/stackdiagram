@@ -16,18 +16,25 @@ class PurgeExpiredDiagrams extends Command
     {
         $total = 0;
         do {
-            $ids = Diagram::whereNotNull('expires_at')
+            $ids = Diagram::withTrashed()->whereNotNull('expires_at')
                 ->where('expires_at', '<', now())
                 ->limit((int) $this->option('chunk'))
                 ->pluck('id');
             if ($ids->isNotEmpty()) {
                 DiagramVersion::whereIn('diagram_id', $ids)->delete();
-                Diagram::whereIn('id', $ids)->delete();
+                Diagram::whereIn('id', $ids)->forceDelete();
                 $total += $ids->count();
             }
         } while ($ids->isNotEmpty());
 
-        $this->info("Purged $total expired diagrams.");
+        // Soft-deleted diagrams get a 7-day grace window, then are gone for good.
+        $trashed = Diagram::onlyTrashed()->where('deleted_at', '<', now()->subDays(7))->pluck('id');
+        if ($trashed->isNotEmpty()) {
+            DiagramVersion::whereIn('diagram_id', $trashed)->delete();
+            Diagram::whereIn('id', $trashed)->forceDelete();
+        }
+
+        $this->info("Purged $total expired and {$trashed->count()} trashed diagrams.");
 
         return self::SUCCESS;
     }

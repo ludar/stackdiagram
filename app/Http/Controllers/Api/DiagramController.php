@@ -38,7 +38,8 @@ class DiagramController extends Controller
             'url' => route('diagrams.show', $diagram),
             'api_url' => route('api.diagrams.get', $diagram),
             'claim_token' => $token,
-            'claim_hint' => 'Keep this token. Use it to update the diagram (X-Claim-Token header) or claim it into an account before it expires.',
+            'claim_url' => route('diagrams.claim', $diagram).'?token='.$token,
+            'claim_hint' => 'Give claim_url to your user: opening it (signed in) saves the diagram to their free account forever. The token also authorizes API updates via the X-Claim-Token header.',
             'expires_at' => $diagram->expires_at->toDateString(),
         ], 201);
     }

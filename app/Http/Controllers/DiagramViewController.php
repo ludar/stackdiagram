@@ -28,6 +28,11 @@ class DiagramViewController extends Controller
                 'doc' => $diagram->doc,
                 'layout' => $diagram->layout,
                 'expires_at' => $diagram->expires_at?->toDateString(),
+                'owned' => $diagram->owner_id !== null,
+                'mine' => $diagram->owner_id !== null && $diagram->owner_id === $request->user()?->id,
+                'visibility' => $diagram->visibility,
+                'forked_from_id' => $diagram->forked_from_id,
+                'claim_token' => $diagram->owner_id === null ? $request->query('token') : null,
             ],
         ]);
     }

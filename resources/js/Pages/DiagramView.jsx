@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Head } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ReactFlow, Background, Controls, BackgroundVariant } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { nodeTypes, toFlow } from '../diagram/nodes.jsx';
@@ -54,6 +54,7 @@ function DetailsPanel({ node, doc, onClose }) {
 }
 
 export default function DiagramView({ diagram }) {
+    const { auth, flash } = usePage().props;
     const { nodes, edges } = useMemo(() => toFlow(diagram.doc, diagram.layout), [diagram]);
     const [selectedId, setSelectedId] = useState(null);
     const selected = selectedId ? diagram.doc.nodes.find((n) => n.id === selectedId) : null;
@@ -72,10 +73,24 @@ export default function DiagramView({ diagram }) {
                 <h1>{diagram.title}</h1>
                 <span className="sd-viewtag">{VIEW_NAMES[diagram.view] ?? diagram.view}</span>
                 <div className="sd-topbar-right">
-                    {diagram.expires_at && <span className="sd-expiry">expires {diagram.expires_at} — claim to keep</span>}
+                    {!diagram.owned && diagram.expires_at && !diagram.claim_token && (
+                        <span className="sd-expiry">expires {diagram.expires_at} — claim to keep</span>
+                    )}
+                    {diagram.claim_token && !diagram.owned && (
+                        auth?.user
+                            ? <a className="sd-btn sd-btn-claim" href={`/d/${diagram.id}/claim?token=${diagram.claim_token}`}>Claim this diagram</a>
+                            : <a className="sd-btn sd-btn-claim" href={`/d/${diagram.id}/claim?token=${diagram.claim_token}`}>Log in to claim</a>
+                    )}
+                    {auth?.user && (
+                        <button className="sd-btn sd-btn-ghost" onClick={() => router.post(`/d/${diagram.id}/fork`)}>Fork</button>
+                    )}
+                    {auth?.user
+                        ? <Link href="/dashboard" className="sd-navlink">My diagrams</Link>
+                        : <Link href="/login" className="sd-navlink">Log in</Link>}
                     <a className="sd-btn" href={`/api/v1/diagrams/${diagram.id}`}>JSON</a>
                 </div>
             </header>
+            {flash?.status && <div className="sd-flash">{flash.status}</div>}
             <main className="sd-canvas">
                 <ReactFlow
                     nodes={nodes}
