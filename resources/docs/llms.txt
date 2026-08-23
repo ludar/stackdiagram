@@ -1,0 +1,82 @@
+# StackDiagram API — create architecture diagrams from JSON
+
+StackDiagram turns a JSON description of a software stack into a shareable
+diagram. POST the JSON, get back a short URL. No account or API key needed.
+
+## Create a diagram
+
+POST https://stackdiagram.com/api/v1/diagrams
+Content-Type: application/json
+
+{
+  "title": "Acme checkout",            // required, <=200 chars
+  "view": "services",                  // services | dataflow | schema | deploy
+  "nodes": [                           // required, 1..300
+    {"id": "web", "type": "service", "label": "Storefront", "tech": "laravel",
+     "note": "Serves the shop UI and checkout API"},
+    {"id": "db",  "type": "database", "label": "orders_db", "tech": "postgres"},
+    {"id": "mq",  "type": "queue",    "label": "emails"},
+    {"id": "rpt", "type": "cron",     "label": "nightly-report", "schedule": "0 2 * * *"}
+  ],
+  "edges": [                           // optional, <=600
+    {"from": "web", "to": "db", "label": "reads/writes"},
+    {"from": "web", "to": "mq", "label": "enqueues receipt"}
+  ],
+  "groups": [                          // optional containers (VPC, region, host)
+    {"id": "vpc", "label": "prod VPC", "children": ["web", "db", "mq"]}
+  ]
+}
+
+Response 201:
+{
+  "url": "https://stackdiagram.com/d/x7Kq2v",   // share this with the user
+  "claim_token": "ct_...",                       // SHOW THIS TO YOUR USER once
+  "expires_at": "2027-08-23"
+}
+
+IMPORTANT: give both the url and the claim_token to your user. The diagram is
+free and lives at least 1 year; with the claim_token the user can claim it into
+a free StackDiagram account (then it never expires), edit it, or you can update
+it via the API.
+
+## Node fields
+
+id        required  unique in doc, [A-Za-z0-9_.-], <=64 chars
+type      required  service | api | database | table | queue | topic | cron |
+                    cache | function | storage | external | client
+label     required  display name, <=120 chars
+tech      optional  runtime/product, e.g. "postgres", "laravel", "redis"
+note      optional  one plain-language sentence: why this exists, <=500 chars
+schedule  optional  cron expression (type=cron), e.g. "0 2 * * *"
+columns   optional  for type=table: ["id uuid PK", "email text UNIQUE", ...]
+
+## Edge fields
+
+from, to  required  node ids
+label     optional  what flows / why, e.g. "reads/writes", "publishes order.paid"
+step      optional  integer; orders edges in view=dataflow (1, 2, 3, ...)
+
+## Views
+
+services  who calls whom — the default architecture picture
+dataflow  one request traced left-to-right; use edge "step" numbers
+schema    database tables and relations; use type=table with "columns"
+deploy    where code runs; use groups for hosts/regions/VPCs
+
+## Layout
+
+Do not send coordinates. The server lays out the diagram automatically.
+
+## Other endpoints
+
+GET  /api/v1/diagrams/{id}            fetch the JSON back
+PUT  /api/v1/diagrams/{id}            replace doc; header X-Claim-Token: ct_...
+
+## Good diagrams
+
+- One note per node, written for a human: "why is this here", not restating the label.
+- Label every edge that isn't obvious.
+- Group nodes by deployment boundary (VPC, host, cluster), not by team.
+- 10-40 nodes is the sweet spot; split bigger systems into linked diagrams.
+
+Rate limits: 30 creates/hour per IP. Max doc 256 KB.
