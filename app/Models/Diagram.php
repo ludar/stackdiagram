@@ -88,6 +88,45 @@ class Diagram extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function collaborators(): HasMany
+    {
+        return $this->hasMany(Collaborator::class);
+    }
+
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    public function collaboratorFor(?User $user): ?Collaborator
+    {
+        if ($user === null) {
+            return null;
+        }
+
+        return $this->collaborators->first(
+            fn (Collaborator $c) => $c->user_id === $user->id || strcasecmp($c->email, $user->email) === 0
+        );
+    }
+
+    public function canBeViewedBy(?User $user): bool
+    {
+        if ($this->visibility !== 'private') {
+            return true;
+        }
+
+        return ($user !== null && $this->owner_id === $user->id) || $this->collaboratorFor($user) !== null;
+    }
+
+    public function canBeEditedBy(?User $user): bool
+    {
+        if ($user === null || $this->owner_id === null) {
+            return false;
+        }
+
+        return $this->owner_id === $user->id || $this->collaboratorFor($user)?->role === 'editor';
+    }
+
     public function versions(): HasMany
     {
         return $this->hasMany(DiagramVersion::class)->orderByDesc('seq');

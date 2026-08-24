@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+
+# AI agents: the API reference lives at https://stackdiagram.com/llms.txt

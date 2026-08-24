@@ -17,7 +17,7 @@ class DiagramEditController extends Controller
     private function owned(Request $request, string $id): Diagram
     {
         $diagram = Diagram::findOrFail($id);
-        abort_unless($diagram->owner_id === $request->user()->id, 403);
+        abort_unless($diagram->canBeEditedBy($request->user()), 403);
 
         return $diagram;
     }

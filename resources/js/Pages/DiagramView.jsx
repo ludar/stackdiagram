@@ -5,6 +5,8 @@ import '@xyflow/react/dist/style.css';
 import { nodeTypes, toFlow } from '../diagram/nodes.jsx';
 import Logo from '../Layouts/Logo.jsx';
 import Editor from '../diagram/Editor.jsx';
+import CommentsPanel from '../diagram/CommentsPanel.jsx';
+import SharePanel from '../diagram/SharePanel.jsx';
 import { BrandIcon, TypeIcon, brandFor } from '../diagram/icons.jsx';
 
 const VIEW_NAMES = { services: 'Services', dataflow: 'Data flow', schema: 'Schema', deploy: 'Deploy' };
@@ -55,12 +57,14 @@ function DetailsPanel({ node, doc, onClose }) {
     );
 }
 
-export default function DiagramView({ diagram }) {
+export default function DiagramView({ diagram, comments = [], collaborators = null }) {
     const { auth, flash } = usePage().props;
     const { nodes, edges } = useMemo(() => toFlow(diagram.doc, diagram.layout), [diagram]);
     const [selectedId, setSelectedId] = useState(null);
     const [editing, setEditing] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [panel, setPanel] = useState(null); // 'comments' | 'share' | null
+    const openComments = comments.filter((c) => !c.resolved).length;
     const copyForAI = async () => {
         try {
             const md = await fetch(`/d/${diagram.id}.md`).then((r) => r.text());
@@ -82,6 +86,9 @@ export default function DiagramView({ diagram }) {
                 <a href="/" className="sd-home" aria-label="StackDiagram home"><Logo size={30} /></a>
                 <h1>{diagram.title}</h1>
                 <span className="sd-viewtag">{VIEW_NAMES[diagram.view] ?? diagram.view}</span>
+                {diagram.forked_from_id && (
+                    <a className="sd-forkline" href={`/d/${diagram.forked_from_id}`}>forked from {diagram.forked_from_id}</a>
+                )}
                 <div className="sd-topbar-right">
                     {diagram.claimable && diagram.expires_at && (
                         <span className="sd-expiry">unclaimed — expires {diagram.expires_at}</span>
@@ -102,6 +109,14 @@ export default function DiagramView({ diagram }) {
                     <button className="sd-btn sd-btn-ghost" onClick={copyForAI} title="Copy an LLM-ready summary — paste it into any AI chat">
                         {copied ? 'Copied' : 'Copy for AI'}
                     </button>
+                    <button className={panel === 'comments' ? 'sd-btn' : 'sd-btn sd-btn-ghost'}
+                        onClick={() => setPanel(panel === 'comments' ? null : 'comments')}>
+                        Comments{openComments > 0 ? ` (${openComments})` : ''}
+                    </button>
+                    {diagram.mine && (
+                        <button className={panel === 'share' ? 'sd-btn' : 'sd-btn sd-btn-ghost'}
+                            onClick={() => setPanel(panel === 'share' ? null : 'share')}>Share</button>
+                    )}
                     {auth?.user
                         ? <Link href="/dashboard" className="sd-navlink">My diagrams</Link>
                         : <Link href="/login" className="sd-navlink">Log in</Link>}
@@ -125,7 +140,13 @@ export default function DiagramView({ diagram }) {
                     <Background variant={BackgroundVariant.Dots} gap={22} size={1.5} />
                     <Controls showInteractive={false} />
                 </ReactFlow>
-                {selected && <DetailsPanel node={selected} doc={diagram.doc} onClose={() => setSelectedId(null)} />}
+                {panel === null && selected && <DetailsPanel node={selected} doc={diagram.doc} onClose={() => setSelectedId(null)} />}
+                {panel === 'comments' && (
+                    <CommentsPanel diagram={diagram} comments={comments} selectedNode={selected} onClose={() => setPanel(null)} />
+                )}
+                {panel === 'share' && diagram.mine && (
+                    <SharePanel diagram={diagram} collaborators={collaborators} onClose={() => setPanel(null)} />
+                )}
             </main>
             )}
         </div>

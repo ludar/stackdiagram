@@ -5,10 +5,19 @@ import SupremArt from '../Layouts/SupremArt.jsx';
 import Logo from '../Layouts/Logo.jsx';
 
 const MAPS = [
-    ['Services', 'Every API, worker, and cron job — who calls whom, and why it exists.'],
-    ['Databases', 'Tables, schemas, and which code reads or writes each one.'],
-    ['Data flow', 'Follow a request end to end — from click to queue to disk.'],
-    ['Deploys', 'Servers, regions, clusters — where the code actually runs.'],
+    ['Services', 'Every API, worker, queue, and cron job — who calls whom, and why each piece exists. The default picture of a system.'],
+    ['Databases', 'Tables with their columns, relations between them, and which services read or write each one.'],
+    ['Data flow', 'One request traced end to end, step by step — from click to queue to disk. Numbered, left to right.'],
+    ['Deploys', 'Servers, regions, clusters, and network boundaries — where the code actually runs, drawn as containers.'],
+];
+
+const FAQ = [
+    ['What is StackDiagram?', 'A place where AI agents (and humans) turn a description of a software system into a shareable diagram. The AI POSTs one JSON document; the result is a living diagram at a short URL — every box clickable, every component explained in plain language.'],
+    ['Is it free?', 'Yes — everything is free during beta. Diagrams created without an account live for at least one year. Claimed diagrams are free forever; that promise survives any paid plans we add later.'],
+    ['What does “claiming” mean?', 'Any unclaimed diagram can be claimed by the first signed-in user who clicks Claim. Claiming puts it in your account, removes the expiry date, and unlocks editing — rearrange nodes, rewrite notes, change visibility.'],
+    ['Can I edit a diagram by hand?', 'Once it\'s yours: drag boxes around, connect them, add or delete components, edit every label and note. Or click Re-layout and let the engine redraw it. Every save keeps a version history.'],
+    ['How do I move a stack between AIs?', 'Every diagram has an LLM-ready twin at the same URL with .md appended — or click “Copy for AI” on the diagram. Paste it into a new Claude, ChatGPT, or Cursor conversation and the next AI starts with your architecture as ground truth.'],
+    ['Who can see my diagram?', 'Diagrams are unlisted by default — visible only to people with the link. Owners can flip them to public (listed on Explore, forkable) or private (only you and people you invite).'],
 ];
 
 const PROMPT = 'Draw a diagram of this architecture on stackdiagram.com — read https://stackdiagram.com/llms.txt for the API, then give me the links it returns.';
@@ -102,6 +111,36 @@ export default function Landing() {
 
 → {"url":"https://stackdiagram.com/d/x7Kq2v",
    "claim_url":"https://stackdiagram.com/d/x7Kq2v/claim"}`}</code></pre>
+            </section>
+
+            <section className="sd-section sd-handoff">
+                <h2>Your stack, remembered between AIs</h2>
+                <div className="sd-handoff-grid">
+                    <p>
+                        Conversations end; architecture shouldn't. Every diagram doubles as an
+                        <strong> LLM-ready context document</strong> — click <em>Copy for AI</em> or fetch the
+                        diagram URL with <code>.md</code> appended. Start a fresh session with any model,
+                        paste it in, and the new AI knows every service, connection, and boundary —
+                        with the reasons why. When it changes something, it updates the diagram
+                        through the API, and the next conversation inherits the new truth.
+                    </p>
+                    <pre className="sd-code sd-code-tight"><code>{`# in your next AI chat:
+"Here is my architecture: read
+ https://stackdiagram.com/d/x7Kq2v.md
+ — treat it as ground truth."`}</code></pre>
+                </div>
+            </section>
+
+            <section className="sd-section sd-faq">
+                <h2>Questions, answered</h2>
+                <div className="sd-faq-list">
+                    {FAQ.map(([q, a]) => (
+                        <details key={q} className="sd-faq-item">
+                            <summary>{q}</summary>
+                            <p>{a}</p>
+                        </details>
+                    ))}
+                </div>
             </section>
 
             <section className="sd-section sd-llm" id="for-ai-agents">

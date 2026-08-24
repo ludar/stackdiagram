@@ -2,12 +2,17 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DiagramActionsController;
+use App\Http\Controllers\CollaboratorController;
+use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DiagramEditController;
+use App\Http\Controllers\ExploreController;
 use App\Http\Controllers\DiagramViewController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', fn () => Inertia::render('Landing'))->name('home');
+
+Route::get('/explore', ExploreController::class)->name('explore');
 
 Route::get('/d/{id}.md', [DiagramViewController::class, 'context'])
     ->where('id', '[A-Za-z0-9]+')->name('diagrams.context');
@@ -23,6 +28,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::patch('/d/{id}/doc', [DiagramEditController::class, 'doc'])->name('diagrams.doc');
     Route::patch('/d/{id}/layout', [DiagramEditController::class, 'layout'])->name('diagrams.layout');
     Route::post('/d/{id}/relayout', [DiagramEditController::class, 'relayout'])->name('diagrams.relayout');
+    Route::post('/d/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
+    Route::post('/comments/{comment}/resolve', [CommentController::class, 'resolve'])->name('comments.resolve');
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy'])->name('comments.destroy');
+    Route::post('/d/{id}/collaborators', [CollaboratorController::class, 'store'])->name('collaborators.store');
+    Route::delete('/d/{id}/collaborators/{collaborator}', [CollaboratorController::class, 'destroy'])->name('collaborators.destroy');
 });
 
 Route::get('/llms.txt', fn () => response(file_get_contents(resource_path('docs/llms.txt')))

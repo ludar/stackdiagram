@@ -2,6 +2,7 @@
 
 namespace App\Actions\Fortify;
 
+use App\Models\Collaborator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
@@ -18,10 +19,17 @@ class CreateNewUser implements CreatesNewUsers
             'password' => ['required', 'string', Password::default(), 'confirmed'],
         ])->validate();
 
-        return User::create([
+        $user = User::create([
             'name' => strstr($input['email'], '@', true) ?: $input['email'],
             'email' => $input['email'],
             'password' => Hash::make($input['password']),
         ]);
+
+        // Invites sent to this address before the account existed now attach to it.
+        Collaborator::whereNull('user_id')
+            ->whereRaw('lower(email) = ?', [strtolower($user->email)])
+            ->update(['user_id' => $user->id]);
+
+        return $user;
     }
 }
