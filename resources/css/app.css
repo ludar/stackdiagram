@@ -186,3 +186,22 @@ canvas.sd-hero-art { width: 100%; max-width: 520px; }
 .sd-llm { background: var(--sd-panel); border-top: 3px solid var(--sd-ink); }
 .sd-llm p { max-width: 70ch; font-size: 15px; line-height: 1.6; color: var(--sd-ink); }
 .sd-llm code { background: var(--sd-bg); border: 1px solid var(--sd-line); padding: 1px 5px; font-family: 'JetBrains Mono', monospace; font-size: .88em; }
+
+/* ── editor ─────────────────────────────────────────────────────── */
+.sd-editbar { display: flex; align-items: center; gap: 14px; padding: 8px 18px; background: var(--sd-panel); border-bottom: 2px solid var(--sd-ink); flex-wrap: wrap; }
+.sd-title-input { font-family: 'Archivo', sans-serif; font-weight: 700; font-size: 15px; color: var(--sd-ink); background: transparent; border: 2px solid transparent; padding: 4px 8px; min-width: 200px; }
+.sd-title-input:hover { border-color: var(--sd-line); }
+.sd-title-input:focus-visible { border-color: var(--sd-ink); outline: none; background: var(--sd-bg); }
+.sd-palette { display: flex; gap: 6px; flex-wrap: wrap; }
+.sd-palette-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--sd-bg); border: 1.5px solid var(--sd-ink); color: var(--sd-ink); padding: 3px 8px; cursor: pointer; }
+.sd-palette-btn:hover { background: var(--sd-ink); color: var(--sd-bg); }
+.sd-editbar-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+.sd-savestate { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; }
+.sd-save-saved { color: var(--sd-green); }
+.sd-save-saving { color: var(--sd-muted); }
+.sd-save-error { color: var(--sd-red); }
+.sd-field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--sd-muted); }
+.sd-field input, .sd-field select, .sd-field textarea { border: 2px solid var(--sd-ink); background: var(--sd-bg); color: var(--sd-ink); font-family: 'Archivo', sans-serif; font-size: 14px; padding: 7px 9px; text-transform: none; letter-spacing: 0; }
+.sd-field textarea { resize: vertical; }
+.sd-field input:focus-visible, .sd-field select:focus-visible, .sd-field textarea:focus-visible { outline: 3px solid var(--sd-gold); outline-offset: 1px; }
+.sd-field-hint { text-transform: none; letter-spacing: 0; color: var(--sd-muted); font-size: 10.5px; opacity: .8; }

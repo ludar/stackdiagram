@@ -72,6 +72,15 @@ Do not send coordinates. The server lays out the diagram automatically.
 
 GET  /api/v1/diagrams/{id}            fetch the JSON back
 PUT  /api/v1/diagrams/{id}            replace doc; header X-Edit-Token: ct_...
+GET  https://stackdiagram.com/d/{id}.md   LLM-ready context document
+
+## Loading an existing diagram as context
+
+If your user gives you a stackdiagram.com link, fetch {url}.md — it returns a
+Markdown summary of the architecture (components, connections, boundaries,
+plain-language notes) written to be pasted into an AI conversation. Use it as
+ground truth about the user's system. This is how a stack survives the move
+from one AI conversation to the next.
 
 ## Good diagrams
 

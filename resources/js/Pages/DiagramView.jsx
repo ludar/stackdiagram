@@ -4,6 +4,7 @@ import { ReactFlow, Background, Controls, BackgroundVariant } from '@xyflow/reac
 import '@xyflow/react/dist/style.css';
 import { nodeTypes, toFlow } from '../diagram/nodes.jsx';
 import Logo from '../Layouts/Logo.jsx';
+import Editor from '../diagram/Editor.jsx';
 import { BrandIcon, TypeIcon, brandFor } from '../diagram/icons.jsx';
 
 const VIEW_NAMES = { services: 'Services', dataflow: 'Data flow', schema: 'Schema', deploy: 'Deploy' };
@@ -58,6 +59,16 @@ export default function DiagramView({ diagram }) {
     const { auth, flash } = usePage().props;
     const { nodes, edges } = useMemo(() => toFlow(diagram.doc, diagram.layout), [diagram]);
     const [selectedId, setSelectedId] = useState(null);
+    const [editing, setEditing] = useState(false);
+    const [copied, setCopied] = useState(false);
+    const copyForAI = async () => {
+        try {
+            const md = await fetch(`/d/${diagram.id}.md`).then((r) => r.text());
+            await navigator.clipboard.writeText(md);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1800);
+        } catch { window.open(`/d/${diagram.id}.md`, '_blank'); }
+    };
     const selected = selectedId ? diagram.doc.nodes.find((n) => n.id === selectedId) : null;
 
     const onNodeClick = useCallback((_e, node) => {
@@ -80,9 +91,17 @@ export default function DiagramView({ diagram }) {
                             {auth?.user ? 'Claim this diagram' : 'Log in to claim'}
                         </a>
                     )}
-                    {auth?.user && (
+                    {diagram.editable && (
+                        <button className={editing ? 'sd-btn' : 'sd-btn sd-btn-ghost'} onClick={() => setEditing((v) => !v)}>
+                            {editing ? 'Done editing' : 'Edit'}
+                        </button>
+                    )}
+                    {auth?.user && !diagram.editable && (
                         <button className="sd-btn sd-btn-ghost" onClick={() => router.post(`/d/${diagram.id}/fork`)}>Fork</button>
                     )}
+                    <button className="sd-btn sd-btn-ghost" onClick={copyForAI} title="Copy an LLM-ready summary — paste it into any AI chat">
+                        {copied ? 'Copied' : 'Copy for AI'}
+                    </button>
                     {auth?.user
                         ? <Link href="/dashboard" className="sd-navlink">My diagrams</Link>
                         : <Link href="/login" className="sd-navlink">Log in</Link>}
@@ -90,6 +109,7 @@ export default function DiagramView({ diagram }) {
                 </div>
             </header>
             {flash?.status && <div className="sd-flash">{flash.status}</div>}
+            {editing ? <Editor diagram={diagram} /> : (
             <main className="sd-canvas">
                 <ReactFlow
                     nodes={nodes}
@@ -107,6 +127,7 @@ export default function DiagramView({ diagram }) {
                 </ReactFlow>
                 {selected && <DetailsPanel node={selected} doc={diagram.doc} onClose={() => setSelectedId(null)} />}
             </main>
+            )}
         </div>
     );
 }
